@@ -47,7 +47,7 @@ async fn run() {
     let window = {
         let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
         WindowBuilder::new()
-            .with_title("Hello Pixels + Web")
+            .with_title("Hello Pixels + Web + Egui (!)")
             .with_inner_size(size)
             .with_min_inner_size(size)
             .build(&event_loop)
@@ -100,6 +100,7 @@ async fn run() {
     }
 
     let mut input = WinitInputHelper::new();
+    /*
     let mut pixels = {
         let window_size = window.inner_size();
         let surface_texture =
@@ -108,6 +109,27 @@ async fn run() {
             .await
             .expect("Pixels error")
     };
+    */
+
+    let (mut pixels, mut framework) = {
+        let window_size = window.inner_size();
+        let scale_factor = window.scale_factor() as f32;
+        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, window.as_ref());
+        // let pixels = Pixels::new(WIDTH, HEIGHT, surface_texture)?;
+        let pixels = Pixels::new_async(WIDTH, HEIGHT, surface_texture)
+            .await
+            .expect("Pixels error");
+        let framework = Framework::new(
+            &event_loop,
+            window_size.width,
+            window_size.height,
+            scale_factor,
+            &pixels,
+        );
+
+        (pixels, framework)
+    };
+
     let mut world = World::new();
 
     event_loop.run(move |event, _, control_flow| {
