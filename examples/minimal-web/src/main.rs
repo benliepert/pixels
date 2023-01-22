@@ -1,6 +1,7 @@
 #![deny(clippy::all)]
 #![forbid(unsafe_code)]
 
+use crate::gui::Framework;
 use log::error;
 use pixels::{Pixels, SurfaceTexture};
 use std::rc::Rc;
@@ -9,6 +10,8 @@ use winit::event::{Event, VirtualKeyCode};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit_input_helper::WinitInputHelper;
+
+mod gui;
 
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
