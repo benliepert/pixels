@@ -132,6 +132,7 @@ async fn run() {
 
     let mut world = World::new();
 
+    /*
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
@@ -163,6 +164,69 @@ async fn run() {
             // Update internal state and request a redraw
             world.update();
             window.request_redraw();
+        }
+    });
+    */
+    event_loop.run(move |event, _, control_flow| {
+        // Handle input events
+        if input.update(&event) {
+            // Close events
+            if input.key_pressed(VirtualKeyCode::Escape) || input.quit() {
+                *control_flow = ControlFlow::Exit;
+                return;
+            }
+
+            // Update the scale factor
+            if let Some(scale_factor) = input.scale_factor() {
+                framework.scale_factor(scale_factor);
+            }
+
+            // Resize the window
+            if let Some(size) = input.window_resized() {
+                if let Err(err) = pixels.resize_surface(size.width, size.height) {
+                    error!("pixels.resize_surface() failed: {err}");
+                    *control_flow = ControlFlow::Exit;
+                    return;
+                }
+                framework.resize(size.width, size.height);
+            }
+
+            // Update internal state and request a redraw
+            world.update();
+            window.request_redraw();
+        }
+
+        match event {
+            Event::WindowEvent { event, .. } => {
+                // Update egui inputs
+                framework.handle_event(&event);
+            }
+            // Draw the current frame
+            Event::RedrawRequested(_) => {
+                // Draw the world
+                world.draw(pixels.get_frame_mut());
+
+                // Prepare egui
+                framework.prepare(&window);
+
+                // Render everything together
+                let render_result = pixels.render_with(|encoder, render_target, context| {
+                    // Render the world texture
+                    context.scaling_renderer.render(encoder, render_target);
+
+                    // Render egui
+                    framework.render(encoder, render_target, context);
+
+                    Ok(())
+                });
+
+                // Basic error handling
+                if let Err(err) = render_result {
+                    error!("pixels.render() failed: {err}");
+                    *control_flow = ControlFlow::Exit;
+                }
+            }
+            _ => (),
         }
     });
 }
